@@ -77,7 +77,9 @@ python test_connection.py
 
 ### 4. Coordinate Configuration
 
-Open `config.py` and adjust the coordinates to match your screen layout.
+> **Note:** If your capture card outputs at 1080p, the default coordinates should work as-is. Changing them unnecessarily may cause misalignment and is not recommended.
+
+Open `config.py` and adjust the coordinates only if your capture resolution differs from 1080p.
 
 ```python
 DEVICE_ID = 5               # Your capture card device ID
