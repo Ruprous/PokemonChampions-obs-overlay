@@ -8,10 +8,10 @@ import os
 from dotenv import load_dotenv
 
 from config import (
-    DEVICE_ID, NAME_REGION, POKEMON_REGIONS,
+    DEVICE_ID, REGIONS,
     OUTPUT_POKEMON,
     OBS_NAME_SOURCE, OBS_POKEMON_SOURCE,
-    HOTKEY_CAPTURE, HOTKEY_CLEAR,
+    HOTKEY_CAPTURE, HOTKEY_CLEAR, HOTKEY_SWITCH,
     OCR_LANGUAGES,
 )
 
@@ -27,6 +27,8 @@ print("OCRモデルを読み込み中...")
 reader = easyocr.Reader(OCR_LANGUAGES, gpu=False)
 print("OCRモデル読み込み完了")
 
+mode = 'double'
+
 
 def crop(frame, region):
     x1, y1, x2, y2 = region
@@ -38,8 +40,8 @@ def ocr_name(img_bgr):
     return ' '.join([r[1] for r in results]) if results else ''
 
 
-def process_pokemon(frame):
-    slots = [crop(frame, r) for r in POKEMON_REGIONS]
+def process_pokemon(frame, pokemon_regions):
+    slots = [crop(frame, r) for r in pokemon_regions]
     margin = 20
     h = max(s.shape[0] for s in slots)
     w_total = sum(s.shape[1] for s in slots) + margin * (len(slots) - 1)
@@ -58,20 +60,28 @@ def refresh_obs_image(source_name, filepath):
     client.set_input_settings(name=source_name, settings={"file": abs_path}, overlay=True)
 
 
+def switch_mode():
+    global mode
+    mode = 'single' if mode == 'double' else 'double'
+    print(f"モード切替: {mode}")
+
+
 def capture():
     ret, frame = cap.read()
     if not ret:
         print("キャプチャ失敗")
         return
 
-    name_text = ocr_name(crop(frame, NAME_REGION))
+    regions = REGIONS[mode]
+
+    name_text = ocr_name(crop(frame, regions['name']))
     client.set_input_settings(name=OBS_NAME_SOURCE, settings={"text": name_text}, overlay=True)
     print(f"名前: {name_text}")
 
-    process_pokemon(frame).save(OUTPUT_POKEMON)
+    process_pokemon(frame, regions['pokemon']).save(OUTPUT_POKEMON)
     refresh_obs_image(OBS_POKEMON_SOURCE, OUTPUT_POKEMON)
 
-    print("キャプチャ完了")
+    print(f"キャプチャ完了 [{mode}]")
 
 
 def clear():
@@ -82,10 +92,11 @@ def clear():
     print("クリア完了")
 
 
+keyboard.add_hotkey(HOTKEY_SWITCH, switch_mode)
 keyboard.add_hotkey(HOTKEY_CAPTURE, capture)
 keyboard.add_hotkey(HOTKEY_CLEAR, clear)
 
-print(f"起動完了 | {HOTKEY_CAPTURE}: キャプチャ | {HOTKEY_CLEAR}: クリア | Esc: 終了")
+print(f"起動完了 [モード: {mode}] | {HOTKEY_SWITCH}: モード切替 | {HOTKEY_CAPTURE}: キャプチャ | {HOTKEY_CLEAR}: クリア | Esc: 終了")
 keyboard.wait("esc")
 
 cap.release()
