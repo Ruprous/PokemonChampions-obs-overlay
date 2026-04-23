@@ -7,7 +7,7 @@ Press a hotkey on the team selection screen to instantly display the opponent's 
 
 ## Features
 
-- Captures the opponent's player name and outputs it as a transparent PNG to OBS
+- Captures the opponent's player name via OCR and displays it as text in OBS
 - Captures each of the opponent's 6 Pokemon slots, arranges them horizontally, and sends to OBS
 - Single hotkey to capture or clear the overlay
 
@@ -34,15 +34,16 @@ pip install -r requirements.txt
 | `Pillow` | PNG image creation with transparency |
 | `keyboard` | Global hotkey detection |
 | `python-dotenv` | Load OBS password from `.env` file |
+| `easyocr` | OCR for opponent trainer name (supports JP/EN/ZH/KO) |
 
 ## Setup
 
 ### 1. OBS Configuration
 
 - Enable the WebSocket server: Tools → WebSocket Server Settings (port: 4455)
-- Create two **Image** sources in OBS with the following exact names:
-  - `pokecham_auto-name` — for the opponent's player name
-  - `pokecham_auto-poke` — for the opponent's Pokemon lineup
+- Create the following sources in OBS:
+  - `pokecham_auto-name` — **Text (GDI+)** source, for the opponent's player name
+  - `pokecham_auto-poke` — **Image** source, for the opponent's Pokemon lineup
 
 ### 2. Find Your Capture Card Device ID
 
@@ -100,6 +101,8 @@ Coordinates are printed to the console — copy them into `config.py`.
 ## Usage
 
 Double-click `start_overlay.bat` to launch.
+
+> **Note:** On first run, EasyOCR will automatically download the OCR model (~100 MB). This only happens once. Startup may take a few seconds while the model loads.
 
 | Hotkey | Action |
 |---|---|

@@ -14,12 +14,14 @@ POKEMON_REGIONS = [
 ]
 
 # 出力ファイルパス
-OUTPUT_NAME    = "output_name.png"
 OUTPUT_POKEMON = "output_pokemon.png"
 
 # OBSソース名
-OBS_NAME_SOURCE    = "pokecham_auto-name"
-OBS_POKEMON_SOURCE = "pokecham_auto-poke"
+OBS_NAME_SOURCE    = "pokecham_auto-name"  # テキスト (GDI+) ソース
+OBS_POKEMON_SOURCE = "pokecham_auto-poke"  # 画像ソース
+
+# OCR言語設定 ('ja', 'en', 'ch_tra', 'ch_sim', 'ko' から選択)
+OCR_LANGUAGES = ['ja', 'en']
 
 # ホットキー設定
 HOTKEY_CAPTURE = "F9"

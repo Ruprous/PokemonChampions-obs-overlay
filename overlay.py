@@ -3,14 +3,16 @@ import keyboard
 import numpy as np
 from PIL import Image
 import obsws_python as obs
+import easyocr
 import os
 from dotenv import load_dotenv
 
 from config import (
     DEVICE_ID, NAME_REGION, POKEMON_REGIONS,
-    OUTPUT_NAME, OUTPUT_POKEMON,
+    OUTPUT_POKEMON,
     OBS_NAME_SOURCE, OBS_POKEMON_SOURCE,
     HOTKEY_CAPTURE, HOTKEY_CLEAR,
+    OCR_LANGUAGES,
 )
 
 load_dotenv()
@@ -21,21 +23,19 @@ cap = cv2.VideoCapture(DEVICE_ID, cv2.CAP_DSHOW)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
 
+print("OCRモデルを読み込み中...")
+reader = easyocr.Reader(OCR_LANGUAGES, gpu=False)
+print("OCRモデル読み込み完了")
+
 
 def crop(frame, region):
     x1, y1, x2, y2 = region
     return frame[y1:y2, x1:x2]
 
 
-def process_name(img_bgr):
-    gray = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
-    _, mask = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-    rgba = np.zeros((gray.shape[0], gray.shape[1], 4), dtype=np.uint8)
-    rgba[:, :, 0] = 255
-    rgba[:, :, 1] = 255
-    rgba[:, :, 2] = 255
-    rgba[:, :, 3] = mask
-    return Image.fromarray(rgba, "RGBA")
+def ocr_name(img_bgr):
+    results = reader.readtext(img_bgr)
+    return ' '.join([r[1] for r in results]) if results else ''
 
 
 def process_pokemon(frame):
@@ -53,7 +53,7 @@ def process_pokemon(frame):
     return Image.fromarray(combined, "RGBA")
 
 
-def refresh_obs(source_name, filepath):
+def refresh_obs_image(source_name, filepath):
     abs_path = os.path.abspath(filepath)
     client.set_input_settings(name=source_name, settings={"file": abs_path}, overlay=True)
 
@@ -64,21 +64,21 @@ def capture():
         print("キャプチャ失敗")
         return
 
-    process_name(crop(frame, NAME_REGION)).save(OUTPUT_NAME)
-    refresh_obs(OBS_NAME_SOURCE, OUTPUT_NAME)
+    name_text = ocr_name(crop(frame, NAME_REGION))
+    client.set_input_settings(name=OBS_NAME_SOURCE, settings={"text": name_text}, overlay=True)
+    print(f"名前: {name_text}")
 
     process_pokemon(frame).save(OUTPUT_POKEMON)
-    refresh_obs(OBS_POKEMON_SOURCE, OUTPUT_POKEMON)
+    refresh_obs_image(OBS_POKEMON_SOURCE, OUTPUT_POKEMON)
 
     print("キャプチャ完了")
 
 
 def clear():
+    client.set_input_settings(name=OBS_NAME_SOURCE, settings={"text": ""}, overlay=True)
     blank = Image.new("RGBA", (1, 1), (0, 0, 0, 0))
-    blank.save(OUTPUT_NAME)
     blank.save(OUTPUT_POKEMON)
-    refresh_obs(OBS_NAME_SOURCE, OUTPUT_NAME)
-    refresh_obs(OBS_POKEMON_SOURCE, OUTPUT_POKEMON)
+    refresh_obs_image(OBS_POKEMON_SOURCE, OUTPUT_POKEMON)
     print("クリア完了")
 
 

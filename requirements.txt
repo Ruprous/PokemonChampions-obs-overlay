@@ -4,3 +4,4 @@ opencv-python
 numpy
 keyboard
 python-dotenv
+easyocr
