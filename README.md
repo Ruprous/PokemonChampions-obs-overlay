@@ -104,11 +104,16 @@ Double-click `start_overlay.bat` to launch.
 
 > **Note:** On first run, EasyOCR will automatically download the OCR model (~100 MB). This only happens once. Startup may take a few seconds while the model loads.
 
+The tool launches in **Double Battle** mode by default.
+
 | Hotkey | Action |
 |---|---|
+| `F8` | Switch between Single / Double Battle mode |
 | `F9` | Capture current frame and send to OBS |
 | `F10` | Clear the OBS overlay |
 | `Esc` | Exit the tool |
+
+> The current mode is shown in the terminal. Switch to the correct mode before pressing `F9`.
 
 ## Example
 
