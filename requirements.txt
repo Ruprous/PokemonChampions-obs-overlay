@@ -1,0 +1,6 @@
+obsws-python
+Pillow
+opencv-python
+numpy
+keyboard
+python-dotenv

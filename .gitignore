@@ -1,0 +1,6 @@
+.env
+output_name.png
+output_pokemon.png
+__pycache__/
+*.pyc
+handover.md
